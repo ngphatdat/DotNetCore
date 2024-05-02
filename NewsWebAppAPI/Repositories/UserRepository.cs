@@ -16,40 +16,30 @@ namespace NewsWebAppAPI.Repositories
             _context = context;
         }
 
-        public void CreateUser(User newUser)
+        public async Task<User> CreateUser(User newUser)
         {
             _context.User.Add(newUser);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+            return newUser;
         }
         
-        public User? GetUserById(int id)
-        {
-                return _context.User.FirstOrDefault(u => u.Id == id);
+        public async Task<User?> GetUserById(int id)
+        {   
+                return await _context.User.FirstOrDefaultAsync(u => u.Id == id);
         }
-
-        public IEnumerable<User>? GetAllUsers()
+         public  async Task<User?> GetUserByEmail(string email)
+                {
+                    return await _context.User.FirstOrDefaultAsync(user => user.Email == email);
+                }
+        public async Task<IEnumerable<User>> GetAllUsers()
         {
-            try
-            {
-                return _context.User.ToList();
-            }
-            catch
-            {
-                return null;
-            }
-        }
-        public bool UserExistsWithPhoneNumber(string phoneNumber)
-        {
-            return _context.User.Any(user => user.PhoneNumber == phoneNumber);
+            return await _context.User.ToListAsync();
         }
         public bool UserExistsWithEmail(string email)
         {
             return _context.User.Any(user => user.Email == email);
         }
-        public  User? GetUserByEmail(string email)
-        {
-            return  _context.User.FirstOrDefault(user => user.Email == email);
-        }
+       
         
     }
 }

@@ -7,10 +7,12 @@ namespace NewsWebAppAPI.Services
 {
     public interface IUserService
     {
-        void Register(UserModelView registerModel);
-        User? GetUserById(int id);
-        IEnumerable<User>? GetAllUsers();
-        void Login(string email, string password);
+        Task<User> getUserById(int id);
+        Task<User> createUser(UserModelView newUser);
+        Task<IEnumerable<User>> getAllUsers();
+        Task<User?> getUserByEmail(string email);
+        Task<User> register(UserModelView newUser);
+
     }
 }
 

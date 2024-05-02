@@ -42,7 +42,7 @@ namespace NewsWebAppAPI.Controllers
         {
             try
             {
-                 _userService.Register(newUser);
+                _userService.register(newUser);
                 return Ok("đã thêm thành công" );
             }
             catch (Exception ex)

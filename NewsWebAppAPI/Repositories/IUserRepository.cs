@@ -7,12 +7,11 @@ namespace NewsWebAppAPI.Repositories
 {
 	public interface IUserRepository
 	{
-        void CreateUser(User newUser);
-        User? GetUserById(int id);
-        IEnumerable<User>? GetAllUsers();
-        bool UserExistsWithPhoneNumber(string phoneNumber);
+        Task<User> CreateUser(User newUser);
+        Task<User?> GetUserById(int id);
+        Task<IEnumerable<User>> GetAllUsers();
 		bool UserExistsWithEmail(string email);
-		User? GetUserByEmail(string email);
+		Task<User?> GetUserByEmail(string email);
     }
 }
 

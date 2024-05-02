@@ -1,120 +1,91 @@
-﻿using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
-using Microsoft.IdentityModel.Tokens;
 using NewsWebAppAPI.Models;
 using NewsWebAppAPI.ModelView;
 using NewsWebAppAPI.Repositories;
-using static NewsWebAppAPI.Models.User;
+using NewsWebAppAPI.Services;
 
-namespace NewsWebAppAPI.Services
+public class UserService : IUserService
 {
-	public class UserService:IUserService
-	{
-        private readonly IUserRepository _userRepository;
+    private readonly IUserRepository _userRepository;
 
-        public UserService(IUserRepository userRepository)
-        {
-            _userRepository = userRepository;
-        }
-        public void Login(string email, string password)
-        {
-            User? user = _userRepository.GetUserByEmail(email);
-            if (user == null)
-            {
-                throw new Exception("Email không tồn tại");
-            }
-            if (!VerifyPassword(password, user.HashPassword))
-            {
-                throw new Exception("Mật khẩu không đúng");
-            }
-            if (user == null)
-            {
-                throw new Exception("Email không tồn tại");
-            }
-           // return GenerateJwtToken(user);
-        }
-        public  void Register(UserModelView registerModel)
-        {
-            if (UserExistsWithPhoneNumber(registerModel.PhoneNumber))
-            {
-                throw new Exception("Số điện thoại đã tồn tại");
-            }
-            if (UserExistsWithEmail(registerModel.Email))
-            {
-                throw new Exception("Email đã tồn tại");
-            }
-            User user = new User
-            {
-                Email = registerModel.Email,
-                FullName = registerModel.FullName,
-                PhoneNumber = registerModel.PhoneNumber,
-                HashPassword = HashPassword(registerModel.Password),
-                Address = registerModel.Address,
-              //  Active = true,
-                DateOfBirth = registerModel.DateOfBirth,
-                CreatedAt = DateTime.Now
-            };
-            _userRepository.CreateUser(user);
-        }
-        private string GenerateJwtToken(User user)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes("nguyen_phat_dat"); // Replace with your secret key
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[] 
-                {
-                    new Claim(ClaimTypes.Name, user.Id.ToString())
-                }),
-                Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
-        }
-        private string HashPassword(string password)
-        {
-            using (SHA256 sha256Hash = SHA256.Create())
-            {
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(password));
+    public UserService(IUserRepository userRepository)
+    {
+        _userRepository = userRepository;
+    }
 
-                StringBuilder builder = new StringBuilder();
-                for (int i = 0; i < bytes.Length; i++)
-                {
-                    builder.Append(bytes[i].ToString("x2"));
-                }
-                return builder.ToString();
-            }
-        }
+    public Task<User> getUserById(int id)
+    {
+        throw new NotImplementedException();
+    }
 
-        private bool VerifyPassword(string password, string hashPassword)
+    public Task<User> createUser(UserModelView newUser)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IEnumerable<User>> getAllUsers()
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<User?> getUserByEmail(string email)
+    {
+        return await _userRepository.GetUserByEmail(email);
+    }
+    
+    public async Task<User> register(UserModelView newUser)
+    {
+         var user = new User() 
         {
-            string hashOfInput = HashPassword(password);
-            StringComparer comparer = StringComparer.OrdinalIgnoreCase;
-            return comparer.Compare(hashOfInput, hashPassword) == 0;
+            Email = newUser.Email,
+            HashPassword =HashPassword(newUser.Password),
+            UserName = newUser.UserName,
+            RoleId = newUser.RoleId,
+            DateOfBirth = newUser.DateOfBirth
+        };
+        if ( await getUserByEmail(user.Email) != null) 
+        { 
+            throw new Exception("Email đã tồn tại");
+        }else
+        {
+            await _userRepository.CreateUser(user);
+            return user;
         }
         
-
-        public User? GetUserById(int id)
+    }
+    private string HashPassword(string password)
+    {
+        using (SHA256 sha256Hash = SHA256.Create())
         {
-            return _userRepository.GetUserById(id);
+            byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(password));
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                builder.Append(bytes[i].ToString("x2"));
+            }
+            return builder.ToString();
         }
-
-        public  IEnumerable<User>? GetAllUsers()
+    }
+ 
+    public async void login(string email, string password)
+    {
+        if ( await getUserByEmail(email) != null)
         {
-            return  _userRepository.GetAllUsers();
+            var user = await getUserByEmail(email);
+            if (user.HashPassword == HashPassword(password))
+            {
+                return;
+            }
+            else
+            {
+                throw new Exception("Sai mật khẩu");
+            }
         }
-        private  bool UserExistsWithPhoneNumber(string phoneNumber)
+        else
         {
-            return _userRepository.UserExistsWithPhoneNumber(phoneNumber);
-        }
-        private  bool UserExistsWithEmail(string email)
-        {
-            return _userRepository.UserExistsWithEmail(email);
+            throw new Exception("Email không tồn tại");   
+            
         }
     }
 }
-

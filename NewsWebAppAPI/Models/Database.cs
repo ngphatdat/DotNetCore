@@ -7,10 +7,8 @@ namespace NewsWebAppAPI.Models
 
 	{
 	 public	DbSet<User> User { get; set; }
-	 public DbSet<Product> Product { get; set; }
         public Database(DbContextOptions<Database> options) : base(options)
-        { 
-
+        {
         }
 
 
